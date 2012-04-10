@@ -1,4 +1,4 @@
-require 'uuid'
+require 'surveyor/common'
 
 module Surveyor
   module Models
@@ -38,7 +38,7 @@ module Surveyor
 
       def default_args
         self.inactive_at ||= DateTime.now
-        self.api_id ||= UUID.generate
+        self.api_id ||= Surveyor::Common.generate_api_id
         self.display_order ||= Survey.count
       end
 
@@ -76,6 +76,12 @@ module Surveyor
         self.active_at = nil if !datetime.nil? and !self.active_at.nil? and self.active_at > datetime
         super(datetime)
       end
+      def to_json
+        template_path = ActionController::Base.view_paths.find("export", ["surveyor"], false, {:handlers=>[:rabl], :locale=>[:en], :formats=>[:json]}, [], []).inspect
+        engine = Rabl::Engine.new(File.read(template_path))
+        engine.render(nil, {:object => self})
+      end
+      
     end
   end
 end

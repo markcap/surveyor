@@ -1,7 +1,9 @@
 When /^I start the "([^"]*)" survey$/ do |name|
-  When "I go to the surveys page"
-  Then "I should see \"#{name}\""
-  click_button "Take it"
+  steps %Q{
+    When I go to the surveys page
+    Then I should see "#{name}\"
+    When I press "Take it"
+  }
 end
 
 Then /^there should be (\d+) response set with (\d+) responses? with:$/ do |rs_num, r_num, table|
@@ -72,14 +74,10 @@ Then /^there should be (\d+) response with answer "([^"]*)"$/ do |count, answer_
   Response.find_by_answer_id(Answer.find_by_text(answer_text)).should_not be_blank
 end
 
-Then /^there should be (\d+) datetime responses with$/ do |count, table|
-  Response.count.should == count.to_i
-  table.hashes.each do |hash|
-    if hash.keys == ["datetime_value"]
-      dtv = DateTime.parse( hash["datetime_value"].size == 8 ? "0001-01-01 #{hash['datetime_value']}" : hash["datetime_value"])
-      Response.all.one?{|x| x.datetime_value == dtv}.should be_true
-    end
-  end
+Then /^there should be a datetime response with today's date$/ do
+  # Response.datetime_value returns ActiveSupport::TimeWithZone
+  # so we call .to_date on it for the comparison with Date.today
+  Response.all.one?{|x| x.datetime_value.to_date == Date.today}.should be_true
 end
 
 Then /^I should see the image "([^"]*)"$/ do |src|
@@ -88,6 +86,20 @@ end
 
 Then /^(\d+) responses should exist$/ do |response_count|
   Response.count.should == response_count.to_i
+end
+
+Then /^the json for "([^"]*)" should be$/ do |title, string|
+  visit "/surveys/#{Survey.find_by_title(title).access_code}.json"
+  puts page.find('body').text
+  Surveyor::Common.equal_json_excluding_wildcards(page.find('body').text, string).should == true
+end
+
+Then /^the json for the last response set for "([^"]*)" should be$/ do |title, string|
+  (survey = Survey.find_by_title(title)).should_not be_nil
+  (response_set = ResponseSet.last(:conditions => {:survey_id => survey.id})).should_not be_nil
+  visit "/surveys/#{survey.access_code}/#{response_set.access_code}.json"
+  puts page.find('body').text
+  Surveyor::Common.equal_json_excluding_wildcards(page.find('body').text, string).should == true
 end
 
 Then /the element "([^\"]*)" should be hidden$/ do |selector|
@@ -104,4 +116,26 @@ Then /the element "([^\"]*)" should not be hidden$/ do |selector|
     its_in_dom = page.evaluate_script("$('#{selector}').length > 0;")
     (its_not_hidden && its_in_dom).should be_true
   end
+end
+Given /^I have survey context of "([^"]*)"$/ do |context|
+  class SurveyorController < ApplicationController
+    require 'mustache'
+    class FakeMustacheContext < ::Mustache
+      def name
+        "Santa Claus"
+      end
+      def site
+        "Northwestern"
+      end
+    end
+    def render_context
+      FakeMustacheContext
+    end
+  end
+end
+
+When /^I follow today's date$/ do
+  steps %Q{
+    When I follow "#{Date.today.strftime('%d').to_i}"
+  }
 end

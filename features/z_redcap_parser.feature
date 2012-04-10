@@ -1,9 +1,12 @@
-Feature: Survey creation
-  As a 
+# The redcap parser feature should run last. If it runs in between other features that use the surveyor parser,
+# it causes the DependencyCondition before_save :resolve_references hook to stop running, causing hard to trace failures.
+
+Feature: Survey import from REDCap
+  As a developer
   I want to write out the survey in the DSL
   So that I can give it to survey participants
 
-  Scenario: Basic questions
+  Scenario: Basic questions from REDCap
     Given I parse redcap file "REDCapDemoDatabase_DataDictionary.csv"
     Then there should be 1 survey with:
       ||
@@ -17,7 +20,7 @@ Feature: Survey creation
       | rule    |
       | A       |
       | A and B |
-  Scenario: question level dependencies
+  Scenario: Question level dependencies from REDCap
     Given I parse redcap file "redcap_siblings.csv"
     Then there should be 1 survey with:
       ||
@@ -31,7 +34,7 @@ Feature: Survey creation
     And there should be 1 dependencies with:
       | rule    |
       | A       |
-  Scenario: with different headers
+  Scenario: with different headers from REDCap
     Given I parse redcap file "redcap_new_headers.csv"
     Then there should be 1 survey with:
       ||
@@ -40,7 +43,7 @@ Feature: Survey creation
     And there should be 2 answers with:
       ||
 
-  Scenario: with different whitespace
+  Scenario: with different whitespace from REDCap
     Given I parse redcap file "redcap_whitespace.csv"
     Then there should be 1 survey with:
       ||

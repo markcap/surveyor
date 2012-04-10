@@ -53,7 +53,13 @@ describe ResponseSet do
 
   it "does not allow completion through mass assignment" do
     @response_set.completed_at.should be_nil
-    @response_set.update_attributes(:completed_at => Time.now)
+    # Rails 3.2 throws an ActiveModel::MassAssignmentSecurity::Error error on response_set.update_attribues
+    # Using begin..rescue..end for Rails 3.1 and 3.0 backwards compatibility
+    # lambda { @response_set.update_attributes(:completed_at => Time.now) }.should raise_error(ActiveModel::MassAssignmentSecurity::Error)
+    begin
+      @response_set.update_attributes(:completed_at => Time.now)
+    rescue
+    end
     @response_set.completed_at.should be_nil
   end
 
@@ -67,6 +73,14 @@ describe ResponseSet do
     @response_set.update_attributes(:responses_attributes => ResponseSet.to_savable(@other_response_attributes))
     @response_set.responses.should have(1).items
     @response_set.responses.detect{|r| r.question_id == 7}.text_value.should == "Brian is tired"
+  end
+
+  it 'saves its responses' do
+    new_set = ResponseSet.new(:survey => Factory(:survey))
+    new_set.responses.build(:question_id => 1, :answer_id => 1, :string_value => 'XXL')
+    new_set.save!
+
+    ResponseSet.find(new_set.id).responses.should have(1).items
   end
 
   it "should ignore data if corresponding radio button is not selected" do

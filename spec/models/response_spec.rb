@@ -10,10 +10,7 @@ describe Response, "when saving a response" do
     @response.should be_valid
   end
 
-  it "should be invalid without a parent response set and question" do
-    @response.response_set_id = nil
-    @response.should have(1).error_on(:response_set_id)
-
+  it "should be invalid without a question" do
     @response.question_id = nil
     @response.should have(1).error_on(:question_id)
   end
@@ -35,6 +32,12 @@ describe Response, "when saving a response" do
     @response.correct?.should be_true
     @response.answer = Factory(:answer, :response_class => "answer").tap { |a| a.id = 143 }
     @response.correct?.should be_false
+  end
+  
+  it "should be in order by created_at" do
+    @response.response_set.should_not be_nil
+    response2 = Factory(:response, :question => Factory(:question), :answer => Factory(:answer), :response_set => @response.response_set, :created_at => (@response.created_at + 1))
+    Response.all.should == [@response, response2]
   end
 
   describe "returns the response as the type requested" do

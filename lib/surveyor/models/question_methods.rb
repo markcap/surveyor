@@ -1,4 +1,4 @@
-require 'uuid'
+require 'surveyor/common'
 
 module Surveyor
   module Models
@@ -23,8 +23,11 @@ module Surveyor
           base.send :validates_inclusion_of, :is_mandatory, :in => [true, false]
           
           @@validations_already_included = true
+          
         end
       end
+
+      include RenderText
 
       # Instance Methods
       def initialize(*args)
@@ -38,7 +41,7 @@ module Surveyor
         self.pick ||= "none"
         self.data_export_identifier ||= Surveyor::Common.normalize(text)
         self.short_text ||= text
-        self.api_id ||= UUID.generate
+        self.api_id ||= Surveyor::Common.generate_api_id
       end
       
       def pick=(val)

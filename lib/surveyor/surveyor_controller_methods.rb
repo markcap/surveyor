@@ -1,8 +1,12 @@
+require 'rabl'
+Rabl.register!
+Rabl.configure {|config| config.include_json_root = false }
 module Surveyor
   module SurveyorControllerMethods
     def self.included(base)
       base.send :before_filter, :get_current_user, :only => [:new, :create]
       base.send :before_filter, :determine_if_javascript_is_enabled, :only => [:create, :update]
+      base.send :before_filter, :set_render_context, :only => [:edit]
       base.send :layout, 'surveyor_default'
     end
 
@@ -25,6 +29,7 @@ module Surveyor
       end
     end
 
+
     def show
       @response_set = ResponseSet.find_by_access_code(params[:response_set_code], :include => {:responses => [:question, :answer]})
       if @response_set
@@ -34,6 +39,7 @@ module Surveyor
           format.csv {
             send_data(@response_set.to_csv, :type => 'text/csv; charset=utf-8; header=present',:filename => "#{@response_set.updated_at.strftime('%Y-%m-%d')}_#{@response_set.access_code}.csv")
           }
+          format.json
         end
       else
         flash[:notice] = t('surveyor.unable_to_find_your_responses')
@@ -91,12 +97,24 @@ module Surveyor
         end
       end
     end
-
+    
+    def export
+      @survey = Survey.find_by_access_code(params[:survey_code])
+    end
     private
+
+    # This is a hoock method for surveyor-using applications to override and provide the context object
+    def render_context
+      nil
+    end
 
     # Filters
     def get_current_user
       @current_user = self.respond_to?(:current_user) ? self.current_user : nil
+    end
+
+    def set_render_context
+      @render_context = render_context
     end
 
     # Params: the name of some submit buttons store the section we'd like to go to. for repeater questions, an anchor to the repeater group is also stored

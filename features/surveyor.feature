@@ -3,7 +3,7 @@ Feature: Survey creation
   I want to take a survey
   So that I can get paid
 
-  Scenario: Basic questions
+  Scenario: Creating basic questions
     Given the survey
     """
       survey "Favorites" do
@@ -37,7 +37,7 @@ Feature: Survey creation
       | orange |
       | brown  |
 
-  Scenario: Default answers
+  Scenario: Creating default answers
     Given the survey
     """
       survey "Favorites" do
@@ -68,7 +68,7 @@ Feature: Survey creation
       | string_value    |
       | chicken |
 
-  Scenario: Quiz time
+  Scenario: Creating, it's quiz time
     Given the survey
     """
       survey "Favorites" do
@@ -82,7 +82,7 @@ Feature: Survey creation
     """
     Then question "1" should have correct answer "oink"
 
-  Scenario: Custom css class
+  Scenario: Creating custom css class
     Given the survey
     """
       survey "Movies" do
@@ -104,7 +104,7 @@ Feature: Survey creation
     And the element "input[type='radio'].other_other_custom_class" should exist
     And the element "input[type='text'].other_other_custom_class" should exist
 
-  Scenario: A pick one question with an option for other
+  Scenario: Creating a pick one question with an option for other
     Given the survey
     """
       survey "Favorites" do
@@ -123,7 +123,7 @@ Feature: Survey creation
     Then there should be 1 response set with 1 response with:
     | bacon |
 
-  Scenario: Repeater with a dropdown
+  Scenario: Creating a repeater with a dropdown
     Given the survey
     """
       survey "Movies" do
@@ -141,7 +141,7 @@ Feature: Survey creation
     Then a dropdown should exist with the options "Action, Comedy, Mystery"
 
   # Issue 251 - text field with checkbox
-  Scenario: Group with a dropdown
+  Scenario: Creating a group with a dropdown
     Given the survey
     """
       survey "All Holidays" do
@@ -158,7 +158,7 @@ Feature: Survey creation
     When I start the "All Holidays" survey
     Then a dropdown should exist with the options "Christmas, New Year, March 8th"
 
-  Scenario: A pick one question with an option for other
+  Scenario: Creating another pick one question with an option for other
     Given the survey
     """
       survey "Favorites" do
@@ -178,7 +178,7 @@ Feature: Survey creation
     Then there should be 1 response set with 1 response with:
     | shrimp |
 
-  Scenario: Checkboxes with text area
+  Scenario: Creating checkboxes with text area
     Given the survey
     """
       survey "Websites" do
@@ -194,7 +194,7 @@ Feature: Survey creation
     Then there should be 3 checkboxes
     And there should be 3 text areas
 
-  Scenario: "Double letter rule keys"
+  Scenario: Creating double letter rule keys
     Given the survey
     """
       survey "Doubles" do
@@ -228,7 +228,7 @@ Feature: Survey creation
     And I press "Two"
     Then the question "Do you want to be part of an SNL skit?" should be triggered
 
-  Scenario: "Changing dropdowns"
+  Scenario: Creating and changing dropdowns
     Given the survey
     """
       survey "Drop" do
@@ -257,7 +257,7 @@ Feature: Survey creation
 
   # Issue 234 - text field with checkbox
   @javascript
-  Scenario: A question with an option checkbox for other and text input 
+  Scenario: Creating a question with an option checkbox for other and text input
     Given the survey
     """
       survey "Favorite Cuisine" do
@@ -277,7 +277,7 @@ Feature: Survey creation
 
   # Issue 234 - empty text field with checkbox
   @javascript
-  Scenario: A question with an option checkbox for other and an empty text input 
+  Scenario: Creating a question with an option checkbox for other and an empty text input
     Given the survey
     """
       survey "Favorite Cuisine" do
@@ -297,7 +297,7 @@ Feature: Survey creation
 
   # Issue 234 - text field with radio buttons
   @javascript
-   Scenario: A question with an option radio button for other and text input 
+   Scenario: Creating a question with an option radio button for other and text input
     Given the survey
     """
       survey "Favorite Cuisine" do
@@ -314,10 +314,10 @@ Feature: Survey creation
     And I wait 2 seconds
     And I change "r_1_string_value" to "thai"
     Then the "other" radiobutton should be checked
- 
+
   # Issue 234 - empty text field with radio buttons
   @javascript
-  Scenario: A question with an option radio button for other and text input 
+  Scenario: Creating another question with an option radio button for other and text input
     Given the survey
     """
       survey "Favorite Cuisine" do
@@ -335,7 +335,42 @@ Feature: Survey creation
     And I change "r_1_string_value" to ""
     Then the "other" radiobutton should not be checked
 
-  Scenario: "Saving grids"
+
+  # Issue 259 - substitution of the text with Mustache
+  @wip
+  @javascript
+  Scenario: Creating a question with an mustache syntax
+    Given I have survey context of "FakeMustacheContext"
+    Given the survey
+    """
+      survey "Overall info" do
+        section "Group of questions" do
+          group "Information on {{name}}?", :help_text => "Answer all you know on {{name}}" do
+            label "{{name}} does not work for {{site}}!", :help_text => "Make sure you sure {{name}} doesn't work for {{site}}"
+
+            q "Where does {{name}} live?", :pick => :one,
+            :help_text => "If you don't know where {{name}} lives, skip the question"
+            a "{{name}} lives on North Pole"
+            a "{{name}} lives on South Pole"
+            a "{{name}} doesn't exist"
+          end
+        end
+      end
+    """
+    When I start the "Overall info" survey
+    And I wait 5 seconds
+    Then I should see "Information on Santa Claus"
+    And I should see "Answer all you know on Santa Claus"
+    And I should see "Santa Claus does not work for Northwestern!"
+    And I should see "Make sure you sure Santa Claus doesn't work for Northwestern"
+    And I should see "Where does Santa Claus live?"
+    And I should see "If you don't know where Santa Claus lives, skip the question"
+    And I should see "Santa Claus lives on North Pole"
+    And I should see "Santa Claus lives on South Pole"
+    And I should see "Santa Claus doesn't exist"
+
+
+  Scenario: Creating and saving grids
     Given the survey
     """
       survey "Grid" do
@@ -363,7 +398,7 @@ Feature: Survey creation
     And I press "One"
     Then there should be 1 response with answer "1"
 
-  Scenario: "Dates"
+  Scenario: Creating dates
     Given the survey
     """
       survey "When" do
@@ -372,12 +407,12 @@ Feature: Survey creation
           a "Give me a date", :date
         end
         section "Two" do
-          q "Tell us when you'd like to eat"
-          a :time
+          q "Tell us when you would like to eat"
+          a "When eat", :time
         end
         section "Three" do
-          q "Tell us when you'd like a phone call"
-          a :datetime
+          q "Tell us when you would like a phone call"
+          a "When phone", :datetime
         end
       end
     """
@@ -386,40 +421,55 @@ Feature: Survey creation
     And I fill in "Give me a date" with "2011-02-14"
     # 1:30am
     And I press "Two"
-    And I select "01" from "Hour"
-    And I select "30" from "Minute"
+    And I fill in "When eat" with "01:30"
     # 2/15/11 5:30pm
     And I press "Three"
-    And I select "2011" from "Year"
-    And I select "February" from "Month"
-    And I select "15" from "Day"
-    And I select "17" from "Hour"
-    And I select "30" from "Minute"
-    And I press "One"
+    And I fill in "When phone" with "2011-02-15 17:30:00"
 
-    Then there should be 3 datetime responses with
-      | datetime_value      |
-      | 2011-02-14 00:00:00 |
-      | 01:30:00 |
-      | 2011-02-15 17:30:00 |
+    # Verification
+    When I press "One"
+    Then the "Give me a date" field should contain "2011-02-14"
+    When I press "Two"
+    Then the "When eat" field should contain "01:30"
+    When I press "Three"
+    Then the "When phone" field should contain "2011-02-15 17:30:00"
 
     # 2/13/11
+    When I press "One"
     And I fill in "Give me a date" with "2011-02-13"
     # 1:30pm
     And I press "Two"
-    And I select "13" from "Hour"
+    And I fill in "When eat" with "13:30"
     # 2/15/11 5:00pm
     And I press "Three"
-    And I select "00" from "Minute"
+    And I fill in "When phone" with "2011-02-15 17:00:00"
+
+    # Verification
+    When I press "One"
+    Then the "Give me a date" field should contain "2011-02-13"
+    When I press "Two"
+    Then the "When eat" field should contain "13:30"
+    When I press "Three"
+    Then the "When phone" field should contain "2011-02-15 17:00:00"
+
+  @javascript
+  Scenario: Creating a date
+    Given the survey
+    """
+      survey "When" do
+        section "One" do
+          q "Tell us when you want to meet"
+          a "Give me a date", :date
+        end
+      end
+    """
+    When I start the "When" survey
+    And I click "Give me a date"
+    And I follow today's date
     And I press "Click here to finish"
+    Then there should be a datetime response with today's date
 
-    Then there should be 3 datetime responses with
-      | datetime_value      |
-      | 2011-02-13 00:00:00 |
-      | 13:30:00 |
-      | 2011-02-15 17:00:00 |
-
-  Scenario: "Images"
+  Scenario: Creating images
     Given the survey
     """
       survey "Images" do
@@ -435,7 +485,7 @@ Feature: Survey creation
     And I should see the image "/images/surveyor/prev.gif"
 
   @javascript
-  Scenario: "Unchecking Checkboxes"
+  Scenario: Creating and unchecking checkboxes
     Given the survey
     """
       survey "Travels" do
