@@ -7,7 +7,7 @@ module Surveyor
         # Associations
         base.send :has_many, :sections, :class_name => "SurveySection", :order => 'display_order', :dependent => :destroy
         base.send :has_many, :sections_with_questions, :include => :questions, :class_name => "SurveySection", :order => 'display_order'
-        base.send :has_many, :response_sets
+        base.send :has_many, :response_sets, :dependent => :destroy
 
         # Scopes
         base.send :scope, :with_sections, {:include => :sections}
